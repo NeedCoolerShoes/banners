@@ -202,11 +202,31 @@ function updateSavedBannersURL(data) {
   url.value = location.origin + location.pathname + "?=" + data.join("_")
 }
 
+function transformLegacySave(data) {
+  const base = NCRSBanner.colors.find(color => { return color.legacy['1.8'] == data.Base })
+  let output = base.encode + "a"
+  data.Patterns.forEach(element => {
+    const pattern =  NCRSBanner.patterns.find(pattern => { return pattern.legacy['1.8'] == element.Pattern })
+    const color =  NCRSBanner.colors.find(color => { return color.legacy['1.8'] == element.Color })
+    output += (color.encode + pattern.encode)
+  })
+  return output
+}
+
+function loadLegacySavedBanners() {
+  if (localStorage.getItem("bn-imported") || !localStorage.getItem("bn")) { return }
+  const data = JSON.parse(localStorage.getItem("bn"))
+  const save = data.map(transformLegacySave)
+  localStorage.setItem("ncrs-banners-saved", JSON.stringify(save))
+  localStorage.setItem("bn-imported", "1")
+}
+
 window.addEventListener("load", () => {
   const currentURL = new URLSearchParams(location)
   const code = currentURL.get("search")
   loadFromURL(code)
   renderURLBanners(code)
+  loadLegacySavedBanners()
   renderSavedBanners()
 })
 
